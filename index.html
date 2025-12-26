@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earnings Calculator with Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+      background-color: #f0f8ff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    input {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      width: 220px;
+    }
+    .result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: left;
+      white-space: pre-line;
+    }
+    canvas {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Earnings Calculator with Chart</h1>
+  <p>Enter your earnings per minute and target amount:</p>
+  <input type="number" id="rate" placeholder="Yen per minute" />
+  <input type="number" id="target" placeholder="Target amount (Yen)" />
+
+  <div class="result" id="result">Time and earnings will appear here...</div>
+  <canvas id="earningsChart" width="600" height="400"></canvas>
+
+  <script>
+    const rateInput = document.getElementById('rate');
+    const targetInput = document.getElementById('target');
+    const resultDiv = document.getElementById('result');
+    const ctx = document.getElementById('earningsChart').getContext('2d');
+
+    let earningsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Hour', 'Day', 'Week', 'Month', 'Year'],
+        datasets: [{
+          label: 'Earnings (Yen)',
+          data: [0, 0, 0, 0, 0],
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        },
+        responsive: true,
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    function calculate() {
+      const rate = parseFloat(rateInput.value);
+      const target = parseFloat(targetInput.value);
+
+      if (isNaN(rate) || rate <= 0) {
+        resultDiv.innerText = "Enter a valid positive rate (yen per minute).";
+        earningsChart.data.datasets[0].data = [0,0,0,0,0];
+        earningsChart.update();
+        return;
+      }
+
+      let output = "";
+
+      // Time to reach target
+      if (!isNaN(target) && target > 0) {
+        const totalMinutes = target / rate;
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = Math.floor(totalMinutes % 60);
+        const seconds = Math.floor((totalMinutes - Math.floor(totalMinutes)) * 60);
+        output += `Time to reach ${target} yen: ${hours} hours ${minutes} minutes ${seconds} seconds\n\n`;
+      }
+
+      // Earnings
+      const minutesPerHour = 60;
+      const minutesPerDay = 60 * 24;
+      const minutesPerWeek = 60 * 24 * 7;
+      const minutesPerMonth = 60 * 24 * 30;
+      const minutesPerYear = 60 * 24 * 365;
+
+      const earnings = [
+        Math.floor(rate * minutesPerHour),
+        Math.floor(rate * minutesPerDay),
+        Math.floor(rate * minutesPerWeek),
+        Math.floor(rate * minutesPerMonth),
+        Math.floor(rate * minutesPerYear)
+      ];
+
+      output += `Earnings in:\n`;
+      output += `- 1 hour: ${earnings[0]} yen\n`;
+      output += `- 1 day: ${earnings[1]} yen\n`;
+      output += `- 1 week: ${earnings[2]} yen\n`;
+      output += `- 1 month: ${earnings[3]} yen\n`;
+      output += `- 1 year: ${earnings[4]} yen`;
+
+      resultDiv.innerText = output;
+
+      // Update chart
+      earningsChart.data.datasets[0].data = earnings;
+      earningsChart.update();
+    }
+
+    rateInput.addEventListener('input', calculate);
+    targetInput.addEventListener('input', calculate);
+  </script>
+</body>
+</html>
